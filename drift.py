@@ -4,7 +4,7 @@ import Node
 import LoRa_time_Power_TDMA
 
 
-max_drift_per_crystal = 2  # the unit is PPM
+max_drift_per_crystal = 12  # the unit is PPM
 crystal_freq_in_MHz = 865  # unit is MHz
 err_in_each_sec = (max_drift_per_crystal * crystal_freq_in_MHz) / 1000000 
 errInEachSecChangeToMS = err_in_each_sec / 1000
@@ -19,6 +19,7 @@ def modify_drift_by_temperature(temperature):
 
 
 def timeToGetErrOf(deadlineOfSGinMs) : # deadlineOfSGinMs is our deadline before get error which is made by SG and this func retun in ms 
+    # return unit is ms
     return deadlineOfSGinMs / errInEachSecChangeToMS
 
 

@@ -9,7 +9,7 @@ max_collision_allowed = 3
 
 
 class NodeTDMA(object):
-    def __init__(self, node_id, node_period, payloadSize,SG, syncSG):
+    def __init__(self, node_id, node_period, payloadSize,assigned_timeSlot):
         self.node_id = node_id
         self.period = node_period
         self.payloadSize = payloadSize
@@ -20,10 +20,11 @@ class NodeTDMA(object):
         self.SF = 7
         self.arrival_time = random.randrange(0, node_period)  #this is the first sending time
         # self.ack = ack_stat.ack
-        self.defaultSG = 0.1 # default SG is safty guard that is assigned to node at the start of network time 
-        self.SG = SG
-        self.syncSG = syncSG
-        self.effExe = (self.exe * self.SG) + self.exe
+        # self.defaultSG = 0.1 # default SG is safty guard that is assigned to node at the start of network time 
+        # self.SG = SG
+        # self.syncSG = syncSG
+        # self.effExe = (self.exe * self.SG) + self.exe
+        self.effExe = assigned_timeSlot * LoRa_time_Power_TDMA.time_slot
         self.syncExe = self.calcSyncExe()
         self.syncEffExe = (self.syncExe * self.syncSG) + self.syncExe
         self.total_correct_sent_msg = 0
