@@ -19,14 +19,16 @@ class NodeTDMA(object):
         self.BW = 125000
         self.SF = 7
         self.arrival_time = random.randrange(0, node_period)  #this is the first sending time
+        self.effExe = assigned_timeSlot * LoRa_time_Power_TDMA.time_slot
+        self.syncExe = self.calcSyncExe()
+        # self.syncEffExe = (self.syncExe * self.syncSG) + self.syncExe
+        self.syncEffExe = LoRa_time_Power_TDMA.time_slot  # now the time slot is 64ms 
         # self.ack = ack_stat.ack
         # self.defaultSG = 0.1 # default SG is safty guard that is assigned to node at the start of network time 
         # self.SG = SG
+        self.SG_ms = (self.effExe - self.exe) - 1
         # self.syncSG = syncSG
         # self.effExe = (self.exe * self.SG) + self.exe
-        self.effExe = assigned_timeSlot * LoRa_time_Power_TDMA.time_slot
-        self.syncExe = self.calcSyncExe()
-        self.syncEffExe = (self.syncExe * self.syncSG) + self.syncExe
         self.total_correct_sent_msg = 0
         self.total_life_ms = 0  # this variable is in mili second 
         self.total_life_day = "0.000" # this variable is in days
@@ -52,12 +54,11 @@ class NodeTDMA(object):
         return (syncSendTime + syncRecTime)
 
 
-
     def lifeTimeDayUpdate(self):
         self.total_life_day = "{:.3f}".format(self.total_life_ms / (86400 * 1000))
 
-    def updateSG_effExe(self, SG):
-        self.effExe = (self.exe * SG) + self.exe
+    # def updateSG_effExe(self, SG):
+    #     self.effExe = (self.exe * SG) + self.exe
         
 
 
@@ -168,3 +169,8 @@ class NodeTDMA(object):
     #     self.sync_time_add = sync_addition_time
 
 
+
+if __name__ == "__main__":
+    node = NodeTDMA(0,70000,125,4)
+    print("period of node is ",node.period, " and exe is ", node.exe, " and effective exe is ", node.effExe)
+    print("the sg is : ", node.SG_ms)

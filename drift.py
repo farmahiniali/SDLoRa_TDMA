@@ -23,22 +23,31 @@ def timeToGetErrOf(deadlineOfSGinMs) : # deadlineOfSGinMs is our deadline before
     return deadlineOfSGinMs / errInEachSecChangeToMS
 
 
-def accepatableErrDriftSG(nodeExe, SG):
-    return (nodeExe * SG) / 2 # this value present amount of error that is accptable,
-    # safty guard is percent of exe time 
-    # we divide it by 2 because we must consider plus/minus of this error and unit is ms
+# def accepatableErrDriftSG(nodeExe, SG):
+#     return (nodeExe * SG) / 2 # this value present amount of error that is accptable,
+#     # safty guard is percent of exe time 
+#     # we divide it by 2 because we must consider plus/minus of this error and unit is ms
+
+# def timeToGetErrByDriftInSG(nodeExe, SG):
+#     acceptableErr = accepatableErrDriftSG(nodeExe, SG)
+#     timeToGetErr = timeToGetErrOf(acceptableErr)
+#     return(timeToGetErr)
 
 
-def timeToGetErrByDriftInSG(nodeExe, SG):
-    acceptableErr = accepatableErrDriftSG(nodeExe, SG)
+def accepatableErrDriftSG(SG_ms):
+        return SG_ms / 2 
+
+
+def timeToGetErrByDriftInSG(SG_ms):
+    acceptableErr = accepatableErrDriftSG(SG_ms)
     timeToGetErr = timeToGetErrOf(acceptableErr)
     return(timeToGetErr)
 
 
 
-def neededNumSync(nodePeriod, nodeExe, SG,nodeSyncExe):
+def neededNumSync(nodePeriod, SG_ms, nodeSyncExe):
     # if time of the period is small enough such that before SG/2 ,node get time and ack of gateway ,so there is no need to sync 
-    timeToGetErr = timeToGetErrByDriftInSG(nodeExe, SG)
+    timeToGetErr = timeToGetErrByDriftInSG(SG_ms)
     if timeToGetErr >= nodePeriod:
         return 0  # , 0  # means to need to sync before next period, and there is not time to get error
     else:
@@ -56,16 +65,16 @@ def neededNumSync(nodePeriod, nodeExe, SG,nodeSyncExe):
             baseNeed = math.ceil((nodePeriod / (timeToGetErr - (2*nodeSyncExe))) - 1)  
             return baseNeed
 
-def syncPeriodRelativeToPeriod(nodePeriod, nodeExe, SG,nodeSyncExe):
+def syncPeriodRelativeToPeriod(nodePeriod, SG_ms,nodeSyncExe):
     # this period is start by start of period and counted between start and end of period
-    numSync = neededNumSync(nodePeriod, nodeExe, SG, nodeSyncExe)
+    numSync = neededNumSync(nodePeriod, SG_ms, nodeSyncExe)
     syncPeriod =  nodePeriod / (numSync + 1) # for example when we need 3 times to sync node, so we must devide period of exe divide by 3 + 1 
     return syncPeriod
 
 
-def diffRelativePeriod_timeToGetErr(nodePeriod, nodeExe, SG, nodeSyncExe):
-    timeTogetErr = timeToGetErrByDriftInSG(nodeExe,SG)
-    relativePeriod = syncPeriodRelativeToPeriod(nodePeriod, nodeExe, SG, nodeSyncExe)
+def diffRelativePeriod_timeToGetErr(nodePeriod, SG_ms, nodeSyncExe):
+    timeTogetErr = timeToGetErrByDriftInSG(SG_ms)
+    relativePeriod = syncPeriodRelativeToPeriod(nodePeriod, SG_ms, nodeSyncExe)
     return (timeTogetErr - relativePeriod)
 
 # def itItUsefulToUseRemainedUtilForExtSG(tasks, util):
@@ -116,16 +125,16 @@ def howMuchExeOfOneTaskCanBeExtToUseAllRemainedUtil(nodePeriod, nodeExe, util):
 # ----------------------------   runing this module   ---------------------
 if __name__ == "__main__":
     n_pl = 125
-    n_period = 700000
-    eN = Node.NodeTDMA(0,n_period,n_pl,0.094,0.1) # example node of NodeTDMA(id,period, paylad,sg,syncSG)
+    n_period = 1700000
+    eN = Node.NodeTDMA(0,n_period,n_pl,4)     #,0.094,0.1) # example node of NodeTDMA(id,period, paylad,sg,syncSG)
     LoRa_time_Power_TDMA.setPayload(eN.payloadSize)
     print("utilization of exe of payload ",n_pl," and period of ", n_period, " is : ", eN.exe/eN.period)
-    print("the time to get error is : {:,.2f} ms".format(timeToGetErrByDriftInSG(eN.exe,eN.SG)))
-    print( "the number needed of sync: ", neededNumSync(eN.period,eN.exe,eN.SG,eN.syncEffExe))  
+    print("the time to get error is : {:,.2f} ms".format(timeToGetErrByDriftInSG(eN.SG_ms)))
+    print( "the number needed of sync: ", neededNumSync(eN.period,eN.SG_ms,eN.syncEffExe))  
     # print("is it possible to extend exe of node: ", isThereEnoughUtilToExtendSG(30000,121,0.1,0.6))
     print("now exe time is :** {:,.2f} ** and period is : ## {:,} ## and effective exe is : ** {:,.2f} ** and \n\
           sync time is : ## {:,.2f} ## and effective sync exe time is : ** {:.2f} **".format(eN.exe, eN.period,eN.effExe,eN.syncExe,eN.syncEffExe))
     print("the relative period is {:,.2f} and time of different between relative period and time to get error is : {:,.2f}"\
-        .format(syncPeriodRelativeToPeriod(eN.period,eN.exe,eN.SG,eN.syncEffExe),diffRelativePeriod_timeToGetErr(eN.period,eN.exe,eN.SG,eN.syncEffExe)))
+        .format(syncPeriodRelativeToPeriod(eN.period,eN.SG_ms,eN.syncEffExe),diffRelativePeriod_timeToGetErr(eN.period,eN.SG_ms,eN.syncEffExe)))
     print("how much exe of node can be extended: {:,.2f}".format(howMuchExeOfOneTaskCanBeExtToUseAllRemainedUtil(eN.period, eN.exe,0.6)))
 
