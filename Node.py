@@ -14,6 +14,7 @@ class NodeTDMA(object):
         self.period = node_period
         self.payloadSize = payloadSize
         self.exe = self.calcExeFromPayload(payloadSize)
+        self.exe_wo_ack = LoRa_time_Power_TDMA.timeOnAir(payloadSize)
         self.alive = True
         self.TP = 17
         self.BW = 125000
